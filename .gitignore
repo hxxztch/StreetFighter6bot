@@ -26,3 +26,42 @@ data/charts/
 # OS
 .DS_Store
 Thumbs.db
+
+# Data files
+data/sf6bot.db*
+data/sf6bot2.db*
+
+# One-off scripts in root
+/add_*.py
+/fix_*.py
+/gen_*.py
+/check_*.py
+/test_*.py
+/probe_*.py
+/rewrite_*.py
+/update_*.py
+/rebuild_*.py
+/*_fix*.py
+/clear_cache.py
+/bootstrap.py
+/cn_name*.py
+/detect*.py
+/filter*.py
+/force_bl.py
+/get_data.py
+/hard_retry.py
+/inspect*.py
+/kill_pycache.py
+/multiseason.py
+/nuke_mock.py
+/patch_bot.py
+/realign_keys.py
+/remove_mock.py
+/revert_400.py
+/rm_cc.py
+/rm_dup.py
+/save_small.py
+/simplify_scrape.py
+/slim_client.py
+/unify_msg.py
+/dash*.html
