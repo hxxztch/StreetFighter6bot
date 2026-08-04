@@ -9,6 +9,8 @@ DUMP_DIR = DATA_DIR / "buckler_dumps"
 CK_PATH = DATA_DIR / "buckler_cookie.txt"
 DUMP_DIR.mkdir(parents=True, exist_ok=True)
 
+SESSION_DIR = DATA_DIR / "buckler_session"
+
 CHAR_CN = {"Ryu":"隆","Luke":"卢克","Ken":"肯","Chun-Li":"春丽","Guile":"古烈","Blanka":"布兰卡","Zangief":"桑吉尔夫","Dhalsim":"达尔西姆","E.Honda":"本田","Dee Jay":"迪杰","Kimberly":"金佰莉","Jamie":"杰米","Manon":"曼侬","Marisa":"玛丽莎","JP":"JP","Juri":"朱莉","Cammy":"嘉米","Lily":"莉莉","Rashid":"拉希德","A.K.I.":"阿鬼","Ed":"爱德","Akuma":"豪鬼","M.Bison":"维嘉","M. Bison":"维嘉","Terry":"特瑞","Mai":"舞","Elena":"艾琳娜","Sagat":"沙加特","Yasmine":"亚斯敏","C.Viper":"深红毒蛇","Ingrid":"英格丽德","Alex":"阿历克斯","Oro":"欧罗","Rose":"罗斯","Edmond Honda":"本田","Any":"总计",}
 
 def _load_cookie():
@@ -18,6 +20,13 @@ def _load_cookie():
             if c and not c.startswith("#"):
                 return c
     except: pass
+    if SESSION_DIR.exists():
+        import asyncio as _asyncio
+        try:
+            from src.buckler.session import refresh_cookie
+            return _asyncio.run(refresh_cookie())
+        except (RuntimeError, Exception):
+            pass
     return None
 
 def _ps_fetch(url, cookie=None):
