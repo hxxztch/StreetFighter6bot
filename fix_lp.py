@@ -1,0 +1,85 @@
+﻿path = r"src\buckler\client.py"
+with open(path, "r", encoding="utf-8") as f:
+    content = f.read()
+
+old_lp = """def _lp_to_tier(lp):
+    ranges = [
+        (25000, "Master", "M"),
+        (22000, "Diamond 5", "D5"),
+        (20000, "Diamond 4", "D4"),
+        (19000, "Diamond 3", "D3"),
+        (17000, "Diamond 2", "D2"),
+        (13000, "Diamond 1", "D1"),
+        (12000, "Platinum 5", "P5"),
+        (11000, "Platinum 4", "P4"),
+        (10000, "Platinum 3", "P3"),
+        (9000, "Platinum 2", "P2"),
+        (8000, "Platinum 1", "P1"),
+        (7500, "Gold 5", "G5"),
+        (7000, "Gold 4", "G4"),
+        (6500, "Gold 3", "G3"),
+        (6000, "Gold 2", "G2"),
+        (5000, "Gold 1", "G1"),
+        (4800, "Silver 5", "S5"),
+        (4500, "Silver 4", "S4"),
+        (4000, "Silver 3", "S3"),
+        (3500, "Silver 2", "S2"),
+        (3000, "Silver 1", "S1"),
+        (2800, "Bronze 5", "B5"),
+        (2500, "Bronze 4", "B4"),
+        (2000, "Bronze 3", "B3"),
+        (1500, "Bronze 2", "B2"),
+        (1000, "Bronze 1", "B1"),
+        (900, "Iron 5", "I5"),
+        (800, "Iron 4", "I4"),
+        (700, "Iron 3", "I3"),
+        (600, "Iron 2", "I2"),
+        (500, "Iron 1", "I1"),
+        (400, "Rookie 5", "R5"),
+        (300, "Rookie 4", "R4"),
+        (200, "Rookie 3", "R3"),
+        (100, "Rookie 2", "R2"),
+        (0, "Rookie 1", "R1"),
+    ]"""
+
+new_lp = """def _lp_to_tier(lp):
+    ranges = [
+        (25000, "Master", "M"),
+        (24000, "Diamond 5", "D5"),
+        (23000, "Diamond 4", "D4"),
+        (22000, "Diamond 3", "D3"),
+        (21000, "Diamond 2", "D2"),
+        (20000, "Diamond 1", "D1"),
+        (19000, "Platinum 5", "P5"),
+        (18000, "Platinum 4", "P4"),
+        (17000, "Platinum 3", "P3"),
+        (16000, "Platinum 2", "P2"),
+        (15000, "Platinum 1", "P1"),
+        (14000, "Gold 5", "G5"),
+        (13000, "Gold 4", "G4"),
+        (12000, "Gold 3", "G3"),
+        (11000, "Gold 2", "G2"),
+        (10000, "Gold 1", "G1"),
+        (9000, "Silver 5", "S5"),
+        (8000, "Silver 4", "S4"),
+        (7000, "Silver 3", "S3"),
+        (6000, "Silver 2", "S2"),
+        (5000, "Silver 1", "S1"),
+        (4500, "Bronze 5", "B5"),
+        (4000, "Bronze 4", "B4"),
+        (3500, "Bronze 3", "B3"),
+        (3000, "Bronze 2", "B2"),
+        (2500, "Bronze 1", "B1"),
+        (2000, "Iron 5", "I5"),
+        (1500, "Iron 4", "I4"),
+        (1000, "Iron 3", "I3"),
+        (500, "Iron 2", "I2"),
+        (100, "Iron 1", "I1"),
+        (1, "Rookie 1", "R1"),
+        (0, "Unranked", "-"),
+    ]"""
+
+content = content.replace(old_lp, new_lp)
+with open(path, "w", encoding="utf-8") as f:
+    f.write(content)
+print("LP mapping updated: 22205LP -> Diamond 3!")
