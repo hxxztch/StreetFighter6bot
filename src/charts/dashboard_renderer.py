@@ -156,76 +156,76 @@ def _gen_html(data: PlayerData) -> str:
             rank_display = f'<div class=\"rank-box\"><div class=\"rank-name\">MASTER</div><div class=\"rank-lp\">{m.group(1)}<span style=\"font-size:10px\"> MR</span></div></div>'
         else:
             tier_short = rs.split()[0] if rs.strip() else ""
-            tier_map = {"D1":"DIAMOND","D2":"DIAMOND","D3":"DIAMOND","D4":"DIAMOND","D5":"DIAMOND",
-                        "P1":"PLATINUM","P2":"PLATINUM","P3":"PLATINUM","P4":"PLATINUM","P5":"PLATINUM",
-                        "G1":"GOLD","G2":"GOLD","G3":"GOLD","G4":"GOLD","G5":"GOLD",
-                        "S1":"SILVER","S2":"SILVER","S3":"SILVER","S4":"SILVER","S5":"SILVER",
-                        "B1":"BRONZE","B2":"BRONZE","B3":"BRONZE","B4":"BRONZE","B5":"BRONZE",
-                        "I1":"IRON","I2":"IRON","I3":"IRON","I4":"IRON","I5":"IRON",
-                        "R1":"ROOKIE","R2":"ROOKIE"}
+            tier_map = {"D1":"Diamond 1","D2":"Diamond 2","D3":"Diamond 3","D4":"Diamond 4","D5":"Diamond 5",
+                        "P1":"Platinum 1","P2":"Platinum 2","P3":"Platinum 3","P4":"Platinum 4","P5":"Platinum 5",
+                        "G1":"Gold 1","G2":"Gold 2","G3":"Gold 3","G4":"Gold 4","G5":"Gold 5",
+                        "S1":"Silver 1","S2":"Silver 2","S3":"Silver 3","S4":"Silver 4","S5":"Silver 5",
+                        "B1":"Bronze 1","B2":"Bronze 2","B3":"Bronze 3","B4":"Bronze 4","B5":"Bronze 5",
+                        "I1":"Iron 1","I2":"Iron 2","I3":"Iron 3","I4":"Iron 4","I5":"Iron 5",
+                        "R1":"Rookie 1","R2":"Rookie 2"}
             tier_name = tier_map.get(tier_short, tier_short)
-            rs_clean = rs.replace("LP","").strip()
+            rs_clean = rs.split()[-1].replace("LP","")
             rank_display = f'<div class=\"rank-box\"><div class=\"rank-name\">{tier_name}</div><div class=\"rank-lp\">{rs_clean}<span style=\"font-size:10px\"> LP</span></div></div>'
     
     return f"""<!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8">
 <style>
 *{{margin:0;padding:0;box-sizing:border-box}}
-body{{background:#060709;color:#e0e0e0;font-family:"Microsoft YaHei","Segoe UI",sans-serif;width:1200px;margin:0 auto;padding:16px}}
-.card{{background:#0d0f15;border-radius:6px;padding:20px;border:1px solid #1a1d26;margin-bottom:18px}}
-.card-title{{font-size:16px;font-weight:700;color:#8a8f9d;letter-spacing:0.5px;margin-bottom:10px;display:flex;align-items:center;gap:6px}}
+body{{background:#060709;color:#e8e8e8;font-family:"Microsoft YaHei","Segoe UI",sans-serif;width:1200px;margin:0 auto;padding:24px}}
+.card{{background:#0e1018;border-radius:6px;padding:22px;border:1px solid #1e2230;margin-bottom:18px}}
+.card-title{{font-size:18px;font-weight:700;color:#a0a5b4;letter-spacing:0.5px;margin-bottom:10px;display:flex;align-items:center;gap:6px}}
 .card-title::before{{content:"";width:3px;height:12px;background:#F15A24}}
 .col2{{display:grid;grid-template-columns:1fr 1fr;gap:10px}}
 .top-header{{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px}}
-.p-title{{font-size:24px;font-weight:bold;color:#fff}}
-.p-sub{{font-size:14px;color:#666;margin-top:3px}}
+.p-title{{font-size:32px;font-weight:bold;color:#fff}}
+.p-sub{{font-size:17px;color:#999;margin-top:4px}}
 .rank-box{{background:#0078d4;color:#fff;padding:6px 16px;border-radius:6px;text-align:right}}
-.rank-name{{font-size:20px;font-weight:bold}}
-.rank-lp{{font-size:28px;font-weight:bold}}
+.rank-name{{font-size:22px;font-weight:bold}}
+.rank-lp{{font-size:36px;font-weight:bold}}
 .donut-wrap{{display:flex;align-items:center;gap:20px}}
-.donut{{width:110px;height:110px;border-radius:50%;background:conic-gradient({donut_gradient});display:flex;align-items:center;justify-content:center;position:relative;flex-shrink:0}}
+.donut{{width:120px;height:120px;border-radius:50%;background:conic-gradient({donut_gradient});display:flex;align-items:center;justify-content:center;position:relative;flex-shrink:0}}
 .donut::after{{content:"";width:72px;height:72px;border-radius:50%;background:#0d0f15;position:absolute}}
-.donut-text{{position:relative;z-index:1;text-align:center;font-size:20px;font-weight:bold;color:#fff}}
-.donut-sub{{font-size:14px;color:#888}}
+.donut-text{{position:relative;z-index:1;text-align:center;font-size:24px;font-weight:bold;color:#fff}}
+.donut-sub{{font-size:17px;color:#aaa}}
 .mode-list{{flex:1}}
-.mode-item{{display:flex;justify-content:space-between;font-size:15px;margin-bottom:6px}}
+.mode-item{{display:flex;justify-content:space-between;font-size:17px;margin-bottom:7px}}
 .mode-dot{{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:6px}}
-.wr-big{{font-size:38px;font-weight:bold;color:#FFC000}}
-.wr-sub{{font-size:14px;color:#666}}
+.wr-big{{font-size:46px;font-weight:bold;color:#FFC000}}
+.wr-sub{{font-size:17px;color:#999}}
 .char-row{{display:flex;align-items:center;gap:18px;padding:12px 0;border-bottom:1px solid #161922}}
 .char-img{{width:52px;height:52px;border-radius:50%;background:#1a1d26;object-fit:cover;display:block}}
-.char-avatar{{width:52px;height:52px;border-radius:50%;display:none;align-items:center;justify-content:center;font-size:16px;font-weight:bold;flex-shrink:0}}
+.char-avatar{{width:60px;height:60px;border-radius:50%;display:none;align-items:center;justify-content:center;font-size:19px;font-weight:bold;flex-shrink:0}}
 .char-img[onerror]+.char-avatar,.char-img:not([src]),.char-img[src=""],img.char-img[src=""]+div.char-avatar{{display:none!important}}
 .char-avatar.fallback{{display:flex!important}}
 .char-info{{flex:1}}
-.char-title-line{{display:flex;gap:8px;font-size:16px;font-weight:bold}}
+.char-title-line{{display:flex;gap:8px;font-size:19px;font-weight:bold}}
 .char-use{{color:#FFC000}}
-.char-sub{{font-size:14px;color:#666;margin-top:3px}}
-.rank-tag{{background:#0078d4;color:#fff;font-size:14px;padding:3px 8px;border-radius:2px;font-weight:bold;white-space:nowrap}}
+.char-sub{{font-size:17px;color:#999;margin-top:4px}}
+.rank-tag{{background:#2563eb;color:#fff;font-size:16px;padding:4px 10px;border-radius:2px;font-weight:bold;white-space:nowrap}}
 .tech-grid{{display:grid;grid-template-columns:1fr 1fr;gap:3px 16px}}
-.tech-item{{display:flex;justify-content:space-between;font-size:15px;padding:3px 0}}
+.tech-item{{display:flex;justify-content:space-between;font-size:17px;padding:4px 0}}
 .tech-val{{font-weight:600;color:#FFC000}}
-.hbar-wrap{{margin-bottom:8px;font-size:15px}}
+.hbar-wrap{{margin-bottom:8px;font-size:17px}}
 .hbar-label{{display:flex;justify-content:space-between;color:#8a8f9d;margin-bottom:2px}}
-.hbar-track{{height:10px;background:#1a1d26;border-radius:2px;overflow:hidden}}
+.hbar-track{{height:11px;background:#1a1d26;border-radius:2px;overflow:hidden}}
 .hbar-fill{{height:100%;background:#F15A24;border-radius:2px}}
 .vs-grid{{display:grid;grid-template-columns:1fr 1fr;gap:8px}}
-.vs-cell{{display:flex;align-items:center;gap:8px;font-size:14px;background:#131620;padding:12px;border-radius:4px}}
-.vs-avatar{{width:32px;height:32px;border-radius:50%;background:#1a1d26;object-fit:cover}}
-.vs-name{{width:40px;color:#fff;font-weight:bold;font-size:13px}}
-.vs-bar-track{{flex:1;height:8px;background:#1a1d26;border-radius:2px;overflow:hidden}}
+.vs-cell{{display:flex;align-items:center;gap:8px;font-size:17px;background:#131620;padding:12px;border-radius:4px}}
+.vs-avatar{{width:36px;height:36px;border-radius:50%;background:#1e2230;object-fit:cover}}
+.vs-name{{width:50px;color:#fff;font-weight:bold;font-size:16px}}
+.vs-bar-track{{flex:1;height:9px;background:#1a1d26;border-radius:2px;overflow:hidden}}
 .vs-bar-fill{{height:100%;background:#F15A24}}
-.vs-rate{{color:#fff;font-weight:bold;width:40px;text-align:right;font-size:14px}}
-.vs-detail{{color:#666;font-size:13px}}
-.battle-row{{display:flex;align-items:center;gap:10px;font-size:14px;padding:8px 0;border-bottom:1px solid #161922}}
-.battle-tag{{padding:1px 6px;border-radius:2px;font-weight:bold;font-size:13px}}
+.vs-rate{{color:#fff;font-weight:bold;width:50px;text-align:right;font-size:17px}}
+.vs-detail{{color:#666;font-size:16px}}
+.battle-row{{display:flex;align-items:center;gap:10px;font-size:17px;padding:9px 0;border-bottom:1px solid #161922}}
+.battle-tag{{padding:1px 6px;border-radius:2px;font-weight:bold;font-size:16px}}
 .battle-tag.win{{background:#2ecc7120;color:#2ecc71}}
 .battle-tag.loss{{background:#e74c3c20;color:#e74c3c}}
 .battle-mode{{color:#666;width:65px}}
-.vs-text{{color:#444;font-size:13px}}
+.vs-text{{color:#444;font-size:16px}}
 .opp-name{{color:#fff;flex:1}}
 .opp-lp{{color:#666;font-size:10px}}
-.footer{{display:flex;justify-content:space-between;font-size:14px;color:#444;padding-top:4px}}
+.footer{{display:flex;justify-content:space-between;font-size:16px;color:#555;padding-top:4px}}
 </style></head><body>
 
 <div class="top-header">
