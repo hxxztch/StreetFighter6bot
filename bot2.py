@@ -125,7 +125,7 @@ async def handle_message(ws, event):
             return
 
     elif cmd == "help":
-        msg = at_user + "指令列表：\n/bind <玩家ID> — 绑定SF6玩家ID（10位纯数字）\n/unbind — 解除绑定\n/myid — 查看已绑定的ID\n/dashboard — 生成数据面板\n/dashboard <ID> — 查他人面板\n/help — 显示本帮助"
+        msg = at_user + "指令列表：\n/bind <玩家ID> — 绑定SF6玩家ID（10位纯数字）\n/unbind — 解除绑定\n/myid — 查看已绑定的ID\n/dashboard [ID|@QQ] — 生成数据面板\n/card [ID|@QQ] — 生成攻防深度分析卡片\n/help — 显示本帮助"
         await send_group_msg(ws, group_id, msg)
     elif cmd == "myid":
         sid = await get_binding(str(user_id))
