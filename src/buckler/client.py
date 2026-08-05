@@ -144,7 +144,7 @@ def _parse(raw, sf6_id):
             else: rank_str = "Unranked"
             w, t = wr_map.get(name, (0, 0))
             data.characters.append(CharacterStat(name=name, usage_count=t, wins=w, total=t, rank=rank_str, league_points=mr if mr > 0 else lp))
-    data.characters = [c for c in data.characters if c.total > 0]
+    # Keep all played characters, even with 0 games (new players)
     data.characters.sort(key=lambda x: (x.league_points if x.league_points > 0 else -1, x.usage_count), reverse=True)
 
     bs = play.get("battle_stats", {}) or {}
@@ -204,7 +204,7 @@ def _parse(raw, sf6_id):
         if vals["total"] > 0:
             data.ranked_matchups.append(MatchupStat(opponent_char=opp_name, wins=vals["wins"], total=vals["total"], mode="ranked"))
 
-    return data if data.username and len(data.characters) > 0 else None
+    return data if data.username else None
 
 async def fetch_player_data(sf6_id):
     cookie = _load_cookie()
