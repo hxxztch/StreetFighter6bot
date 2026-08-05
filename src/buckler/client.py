@@ -215,6 +215,20 @@ async def fetch_player_data(sf6_id):
     result = _fetch(url, cookie)
     if not result:
         print("[Buckler] Fetch failed")
+        # Try Playwright as last resort
+        try:
+            from playwright.async_api import async_playwright
+            async with async_playwright() as p:
+                browser = await p.chromium.launch(headless=True)
+                page = await browser.new_page()
+                await page.goto(url, timeout=20000, wait_until="networkidle")
+                html = await page.content()
+                await browser.close()
+                result = {"StatusCode": 200, "Content": html}
+                print("[Buckler] Playwright fetch OK (" + str(len(html)) + " bytes)")
+        except Exception as e:
+            print("[Buckler] Playwright fetch also failed: " + str(e))
+    if not result:
         raise Exception("Cookie闁哄牜浜崢銈囩磾椤曞棛绀夐悹鍥у槻閸樻盯宕烽妸锔俱偦閻熸瑥鐗嗗▍鎺楁儌鐠囪尙绉緽uckler闁告艾瀛╄ぐ渚€宕ｉ張鍣妎kie闁?data/buckler_cookie.txt")
     status = result.get("StatusCode", 0)
     html = result.get("Content", "")
