@@ -215,19 +215,32 @@ async def fetch_player_data(sf6_id):
     result = _fetch(url, cookie)
     if not result:
         print("[Buckler] Fetch failed")
-        # Try Playwright as last resort
-        try:
-            from playwright.async_api import async_playwright
-            async with async_playwright() as p:
-                browser = await p.chromium.launch(headless=True)
-                page = await browser.new_page()
-                await page.goto(url, timeout=20000, wait_until="networkidle")
-                html = await page.content()
-                await browser.close()
+        # Try Playwright (with retries + persistent session if available)
+        import time as _time
+        for _retry in range(3):
+            try:
+                from playwright.async_api import async_playwright
+                if SESSION_DIR.exists():
+                    async with async_playwright() as p:
+                        context = await p.chromium.launch_persistent_context(str(SESSION_DIR), headless=True, user_agent="Mozilla/5.0 Chrome/126")
+                        page = await context.new_page()
+                        await page.goto(url, timeout=30000, wait_until="domcontentloaded")
+                        html = await page.content()
+                        await context.close()
+                else:
+                    async with async_playwright() as p:
+                        browser = await p.chromium.launch(headless=True)
+                        page = await browser.new_page()
+                        await page.goto(url, timeout=30000, wait_until="domcontentloaded")
+                        html = await page.content()
+                        await browser.close()
                 result = {"StatusCode": 200, "Content": html}
                 print("[Buckler] Playwright fetch OK (" + str(len(html)) + " bytes)")
-        except Exception as e:
-            print("[Buckler] Playwright fetch also failed: " + str(e))
+                break
+            except Exception as e:
+                print("[Buckler] Playwright retry " + str(_retry+1) + "/3: " + str(e)[:80])
+                _time.sleep(2)
+                result = None
     if not result:
         raise Exception("Cookie闁哄牜浜崢銈囩磾椤曞棛绀夐悹鍥у槻閸樻盯宕烽妸锔俱偦閻熸瑥鐗嗗▍鎺楁儌鐠囪尙绉緽uckler闁告艾瀛╄ぐ渚€宕ｉ張鍣妎kie闁?data/buckler_cookie.txt")
     status = result.get("StatusCode", 0)
