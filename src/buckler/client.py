@@ -374,41 +374,45 @@ async def fetch_player_data(sf6_id):
     # Battle log
     bl_url = f"{BUCKLER_BASE_URL}/profile/{sf6_id}/battlelog"
     print(f"[Buckler] Fetching battle log: {bl_url}")
-    bl_result = _fetch(bl_url, cookie)
-    if bl_result and bl_result.get("StatusCode", 0) == 200:
+    all_entries = []
+    for bl_page in [1, 2, 3]:
+        bl_page_url = bl_url if bl_page == 1 else f"{bl_url}?page={bl_page}"
+        bl_result = _fetch(bl_page_url, cookie)
+        if not bl_result or bl_result.get("StatusCode", 0) != 200:
+            break
         bl_html = bl_result.get("Content", "")
         bl_m = re.search(r'<script id="__NEXT_DATA__" type="application/json">(.+?)</script>', bl_html, re.DOTALL)
-        if bl_m:
-            bl_raw = json.loads(bl_m.group(1))
-            bl_pp = bl_raw.get("props", {}).get("pageProps", {}) or {}
-            replay_list = bl_pp.get("replay_list", []) or []
-            print(f"[Buckler] Replay list: {len(replay_list)} entries")
-            for entry in replay_list[:5]:
-                if not isinstance(entry, dict): continue
-                p1 = entry.get("player1_info", {}) or {}
-                p2 = entry.get("player2_info", {}) or {}
-                p1_sid = str((p1.get("player", {}) or {}).get("short_id", ""))
-                p2_sid = str((p2.get("player", {}) or {}).get("short_id", ""))
-                tid = str(sf6_id)
-                if p2_sid == tid: u, o = p2, p1
-                elif p1_sid == tid: u, o = p1, p2
-                else: u, o = p2, p1
-                ur = u.get("round_results", []) or []; orr = o.get("round_results", []) or []
-                uw = sum(1 for r in ur if r == 1); ow = sum(1 for r in orr if r == 1)
-                res = "win" if uw > ow else "lose"
-                uc = CHAR_CN.get(u.get("character_name",""), u.get("character_name","?"))
-                oc = CHAR_CN.get(o.get("character_name",""), o.get("character_name","?"))
-                on = (o.get("player",{}) or {}).get("fighter_id","?")
-                md = entry.get("replay_battle_type_name","?")
-                ts = entry.get("uploaded_at",0) or 0
-                if ts:
-                    import datetime
-                    ds = datetime.datetime.fromtimestamp(ts).strftime("%m/%d %H:%M")
-                else:
-                    ds = "?"
-                data.recent_matches.append(RecentMatch(date=ds, opponent_name=str(on), opponent_char=str(oc), player_char=str(uc), result=res, mode=str(md), rounds_won=uw, rounds_lost=ow, lp_change=0))
+        if not bl_m:
+            break
+        bl_raw = json.loads(bl_m.group(1))
+        bl_pp = bl_raw.get("props", {}).get("pageProps", {}) or {}
+        replay_list = bl_pp.get("replay_list", []) or []
+        all_entries.extend(replay_list)
+        if len(replay_list) < 10 or len(all_entries) >= 30:
+            break
+    print(f"[Buckler] Replay list: {len(all_entries)} entries")
+    for entry in all_entries[:30]:
+        if not isinstance(entry, dict): continue
+        p1 = entry.get("player1_info", {}) or {}
+        p2 = entry.get("player2_info", {}) or {}
+        p1_sid = str((p1.get("player", {}) or {}).get("short_id", ""))
+        p2_sid = str((p2.get("player", {}) or {}).get("short_id", ""))
+        tid = str(sf6_id)
+        if p2_sid == tid: u, o = p2, p1
+        elif p1_sid == tid: u, o = p1, p2
+        else: u, o = p2, p1
+        ur = u.get("round_results", []) or []; orr = o.get("round_results", []) or []
+        uw = sum(1 for r in ur if r == 1); ow = sum(1 for r in orr if r == 1)
+        res = "win" if uw > ow else "lose"
+        uc = CHAR_CN.get(u.get("character_name",""), u.get("character_name","?"))
+        oc = CHAR_CN.get(o.get("character_name",""), o.get("character_name","?"))
+        on = (o.get("player",{}) or {}).get("fighter_id","?")
+        md = entry.get("replay_battle_type_name","?")
+        ts = entry.get("uploaded_at",0) or 0
+        if ts:
+            import datetime
+            ds = datetime.datetime.fromtimestamp(ts).strftime("%m/%d %H:%M")
         else:
-            print(f"[Buckler] No __NEXT_DATA__ in battle log response")
-    else:
-        print(f"[Buckler] BL status: {bl_result.get('StatusCode',0) if bl_result else 'None'}")
+            ds = "?"
+        data.recent_matches.append(RecentMatch(date=ds, opponent_name=str(on), opponent_char=str(oc), player_char=str(uc), result=res, mode=str(md), rounds_won=uw, rounds_lost=ow, lp_change=0))
     return data

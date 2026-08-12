@@ -100,7 +100,7 @@ def analyze_card(data: "PlayerData", chars_list: list):
             tags.append(clean + ("高" if item["status"] == "偏高" else "低"))
 
     ranked_res = [m.result for m in data.recent_matches if "rank" in m.mode.lower() and m.result in ("win", "lose")]
-    all_res = [m.result for m in data.recent_matches if m.result in ("win", "lose")][:25]
+    all_res = [m.result for m in data.recent_matches if m.result in ("win", "lose")][:30]
     rmax_w, rmax_l, rcur, rcur_t = _calc_streaks(ranked_res)
     amax_w, amax_l, acur, acur_t = _calc_streaks(all_res)
     streaks = {"ranked_max_win": rmax_w, "ranked_max_lose": rmax_l, "ranked_cur": rcur, "ranked_cur_type": rcur_t,
