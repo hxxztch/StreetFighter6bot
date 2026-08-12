@@ -162,7 +162,7 @@ def _gen_html(data: PlayerData) -> str:
                         "S1":"Silver 1","S2":"Silver 2","S3":"Silver 3","S4":"Silver 4","S5":"Silver 5",
                         "B1":"Bronze 1","B2":"Bronze 2","B3":"Bronze 3","B4":"Bronze 4","B5":"Bronze 5",
                         "I1":"Iron 1","I2":"Iron 2","I3":"Iron 3","I4":"Iron 4","I5":"Iron 5",
-                        "R1":"Rookie 1","R2":"Rookie 2"}
+                        "R1":"Rookie 1","R2":"Rookie 2","R3":"Rookie 3","R4":"Rookie 4","R5":"Rookie 5"}
             tier_name = tier_map.get(tier_short, tier_short)
             rs_clean = rs.split()[-1].replace("LP","")
             rank_display = f'<div class=\"rank-box\"><div class=\"rank-name\">{tier_name}</div><div class=\"rank-lp\">{rs_clean}<span style=\"font-size:10px\"> LP</span></div></div>'

@@ -85,18 +85,21 @@ def _fetch(url, cookie=None):
 
 def _lp_to_tier(lp):
     ranges = [
-        (25000, "Master", "M"), (24000, "Diamond 5", "D5"), (23000, "Diamond 4", "D4"),
-        (22000, "Diamond 3", "D3"), (21000, "Diamond 2", "D2"), (20000, "Diamond 1", "D1"),
-        (19000, "Platinum 5", "P5"), (18000, "Platinum 4", "P4"), (17000, "Platinum 3", "P3"),
-        (16000, "Platinum 2", "P2"), (15000, "Platinum 1", "P1"),
-        (14000, "Gold 5", "G5"), (13000, "Gold 4", "G4"), (12000, "Gold 3", "G3"),
-        (11000, "Gold 2", "G2"), (10000, "Gold 1", "G1"),
-        (9000, "Silver 5", "S5"), (8000, "Silver 4", "S4"), (7000, "Silver 3", "S3"),
-        (6000, "Silver 2", "S2"), (5000, "Silver 1", "S1"),
-        (4500, "Bronze 5", "B5"), (4000, "Bronze 4", "B4"), (3500, "Bronze 3", "B3"),
-        (3000, "Bronze 2", "B2"), (2500, "Bronze 1", "B1"),
-        (2000, "Iron 5", "I5"), (1500, "Iron 4", "I4"), (1000, "Iron 3", "I3"),
-        (500, "Iron 2", "I2"), (100, "Iron 1", "I1"), (1, "Rookie 1", "R1"), (0, "Unranked", "-"),
+        (25000, "Master", "M"),
+        (23800, "Diamond 5", "D5"), (22600, "Diamond 4", "D4"),
+        (21400, "Diamond 3", "D3"), (20200, "Diamond 2", "D2"), (19000, "Diamond 1", "D1"),
+        (17800, "Platinum 5", "P5"), (16600, "Platinum 4", "P4"), (15400, "Platinum 3", "P3"),
+        (14200, "Platinum 2", "P2"), (13000, "Platinum 1", "P1"),
+        (12200, "Gold 5", "G5"), (11400, "Gold 4", "G4"), (10600, "Gold 3", "G3"),
+        (9800, "Gold 2", "G2"), (9000, "Gold 1", "G1"),
+        (8200, "Silver 5", "S5"), (7400, "Silver 4", "S4"), (6600, "Silver 3", "S3"),
+        (5800, "Silver 2", "S2"), (5000, "Silver 1", "S1"),
+        (4600, "Bronze 5", "B5"), (4200, "Bronze 4", "B4"), (3800, "Bronze 3", "B3"),
+        (3400, "Bronze 2", "B2"), (3000, "Bronze 1", "B1"),
+        (2600, "Iron 5", "I5"), (2200, "Iron 4", "I4"), (1800, "Iron 3", "I3"),
+        (1400, "Iron 2", "I2"), (1000, "Iron 1", "I1"),
+        (800, "Rookie 5", "R5"), (600, "Rookie 4", "R4"), (400, "Rookie 3", "R3"),
+        (200, "Rookie 2", "R2"), (0, "Rookie 1", "R1"),
     ]
     for t, n, s in ranges:
         if lp >= t:
