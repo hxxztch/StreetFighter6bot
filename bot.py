@@ -35,6 +35,57 @@ def _fetch_sync(sf6_id):
     """Run async fetch_player_data in a fresh event loop (thread-safe)"""
     return asyncio.run(fetch_player_data(sf6_id))
 
+async def _fetch_and_save_weekly(ws, group_id):
+    week_id = current_week_id()
+    members = await api_call(ws, "get_group_member_list", {"group_id": int(group_id)})
+    member_map = {}
+    for m in members.get("data", []):
+        qq = str(m.get("user_id"))
+        nickname = m.get("card") or m.get("nickname") or qq
+        member_map[qq] = nickname
+    bindings = await all_bindings()
+    target = [(qq, sf6_id) for qq, sf6_id in bindings if qq in member_map]
+    loop = asyncio.get_running_loop()
+    sem = asyncio.Semaphore(3)
+
+    async def fetch_one(qq, sf6_id):
+        async with sem:
+            try:
+                data = await loop.run_in_executor(None, _fetch_sync, sf6_id)
+                return qq, sf6_id, data
+            except Exception as e:
+                print("[Weekly] skip " + qq + ": " + str(e))
+                return qq, sf6_id, None
+
+    results = await asyncio.gather(*[fetch_one(qq, sf6_id) for qq, sf6_id in target])
+    snapshot = []
+    for qq, sf6_id, data in results:
+        if data is None:
+            continue
+        tc = top_character(data)
+        if tc is None:
+            continue
+        snapshot.append({
+            "qq_id": qq, "sf6_id": sf6_id,
+            "nickname": member_map.get(qq, qq),
+            "character": tc["name"],
+            "rank_label": tc["label"],
+            "score": tc["score"],
+        })
+    snapshot.sort(key=lambda x: -x["score"])
+    for i, e in enumerate(snapshot):
+        e["rank"] = i + 1
+    await save_weekly(week_id, str(group_id), snapshot)
+    return snapshot
+
+async def _render_and_send_weekly(ws, group_id, at_user, current):
+    week_id = current_week_id()
+    prev = await get_prev_weekly(week_id, str(group_id))
+    entries = build_leaderboard(current, prev)
+    img_path = await render_weekly(week_id, group_id, entries)
+    await send_group_image(ws, group_id, at_user, img_path)
+
+
 async def send_group_msg(ws, group_id, text):
     """Send a text message to a QQ group"""
     msg = {
@@ -145,69 +196,26 @@ async def handle_message(ws, event):
             return
 
     elif cmd == "weekly":
-        await send_group_msg(ws, group_id, at_user + "正在生成周榜，请稍候...")
+        await send_group_msg(ws, group_id, at_user + "正在获取周榜...")
         try:
             week_id = current_week_id()
-            existing = await get_weekly(week_id, str(group_id))
-
-            if not existing:
-                # First call this week: fetch fresh data
-                members = await api_call(ws, "get_group_member_list", {"group_id": int(group_id)})
-                member_map = {}
-                for m in members.get("data", []):
-                    qq = str(m.get("user_id"))
-                    nickname = m.get("card") or m.get("nickname") or qq
-                    member_map[qq] = nickname
-
-                bindings = await all_bindings()
-                target = [(qq, sf6_id) for qq, sf6_id in bindings if qq in member_map]
-
-                loop = asyncio.get_running_loop()
-                sem = asyncio.Semaphore(3)
-
-                async def fetch_one(qq, sf6_id):
-                    async with sem:
-                        try:
-                            data = await loop.run_in_executor(None, _fetch_sync, sf6_id)
-                            return qq, sf6_id, data
-                        except Exception as e:
-                            print("[Weekly] skip " + qq + ": " + str(e))
-                            return qq, sf6_id, None
-
-                results = await asyncio.gather(*[fetch_one(qq, sf6_id) for qq, sf6_id in target])
-
-                snapshot = []
-                for qq, sf6_id, data in results:
-                    if data is None:
-                        continue
-                    tc = top_character(data)
-                    if tc is None:
-                        continue
-                    snapshot.append({
-                        "qq_id": qq, "sf6_id": sf6_id,
-                        "nickname": member_map.get(qq, qq),
-                        "character": tc["name"],
-                        "rank_label": tc["label"],
-                        "score": tc["score"],
-                    })
-
-                snapshot.sort(key=lambda x: -x["score"])
-                for i, e in enumerate(snapshot):
-                    e["rank"] = i + 1
-                await save_weekly(week_id, str(group_id), snapshot)
-                current = snapshot
-            else:
-                current = existing
-
-            prev = await get_prev_weekly(week_id, str(group_id))
-            entries = build_leaderboard(current, prev)
-            img_path = await render_weekly(week_id, group_id, entries)
-            await send_group_image(ws, group_id, at_user, img_path)
+            current = await get_weekly(week_id, str(group_id))
+            if not current:
+                current = await _fetch_and_save_weekly(ws, group_id)
+            await _render_and_send_weekly(ws, group_id, at_user, current)
         except Exception as e:
-            await send_group_msg(ws, group_id, at_user + "周榜生成失败：" + str(e))
+            await send_group_msg(ws, group_id, at_user + "周榜获取失败：" + str(e))
+
+    elif cmd == "weekrefresh":
+        await send_group_msg(ws, group_id, at_user + "正在刷新周榜数据，请稍候...")
+        try:
+            current = await _fetch_and_save_weekly(ws, group_id)
+            await _render_and_send_weekly(ws, group_id, at_user, current)
+        except Exception as e:
+            await send_group_msg(ws, group_id, at_user + "周榜刷新失败：" + str(e))
 
     elif cmd == "help":
-        msg = at_user + "指令列表：\n/bind <玩家ID> — 绑定SF6玩家ID（10位纯数字）\n/unbind — 解除绑定\n/myid — 查看已绑定的ID\n/dashboard [ID|@QQ] — 生成数据面板\n/card [ID|@QQ] — 生成攻防深度分析卡片\n/weekly — 生成本群周榜\n/help — 显示本帮助"
+        msg = at_user + "指令列表：\n/bind <玩家ID> — 绑定SF6玩家ID（10位纯数字）\n/unbind — 解除绑定\n/myid — 查看已绑定的ID\n/dashboard [ID|@QQ] — 生成数据面板\n/card [ID|@QQ] — 生成攻防深度分析卡片\n/weekly — 查看当前周榜\n/help — 显示本帮助"
         await send_group_msg(ws, group_id, msg)
     elif cmd == "myid":
         sid = await get_binding(str(user_id))
