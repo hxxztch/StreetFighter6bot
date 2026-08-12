@@ -146,7 +146,6 @@ async def handle_message(ws, event):
         if not question:
             await send_group_msg(ws, group_id, at_user + "请问你想问什么？")
             return
-        await send_group_msg(ws, group_id, at_user + "正在思考，请稍候...")
         try:
             answer = await ask_chat(question)
             await send_group_msg(ws, group_id, at_user + answer)
@@ -245,7 +244,6 @@ async def handle_message(ws, event):
                 context = build_player_context(data)
             except Exception:
                 pass
-        await send_group_msg(ws, group_id, at_user + "正在思考，请稍候...")
         try:
             answer = await ask_sf6(arg, context)
             await send_group_msg(ws, group_id, at_user + answer)
