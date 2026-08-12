@@ -2,9 +2,8 @@
 from src.buckler.models import PlayerData
 
 def _judge(val, mn, mx, is_pct=False):
-    current = val * 100 if is_pct and val <= 1.0 else val
-    if current < mn: return "偏低", "#3b82f6"
-    elif current > mx: return "偏高", "#f39c12"
+    if val < mn: return "偏低", "#3b82f6"
+    elif val > mx: return "偏高", "#f39c12"
     return "正常", "#2ecc71"
 
 def _calc_streaks(results):
@@ -45,7 +44,7 @@ def analyze_card(data: "PlayerData", chars_list: list):
         "thrown": round(ts.throws_landed + ts.throw_escapes, 1),
         "drive_thrown": round(ts.received_throw_drive_parry, 1),
         "stun_received": round(ts.stuns_received, 2),
-        "parry_rate": round(ts.perfect_parries / max(ts.drive_parry, 1), 2),
+        "parry_rate": round(ts.perfect_parries / max(ts.drive_parry, 1) * 100, 1),
     }
 
     OFF = {
@@ -68,7 +67,7 @@ def analyze_card(data: "PlayerData", chars_list: list):
         "thrown": {"min": 1.9, "max": 2.5, "label": "被投"},
         "drive_thrown": {"min": 0.1, "max": 0.3, "label": "被蓝防投"},
         "stun_received": {"min": 0.0, "max": 0.1, "label": "被晕"},
-        "parry_rate": {"min": 0.11, "max": 0.20, "unit": "%", "label": "精准招架率"},
+        "parry_rate": {"min": 11, "max": 20, "unit": "%", "label": "精准招架率"},
     }
 
     def _build(cfg):
