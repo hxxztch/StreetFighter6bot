@@ -147,6 +147,36 @@ def _parse(raw, sf6_id):
             else: rank_str = "Unranked"
             w, t = wr_map.get(name, (0, 0))
             data.characters.append(CharacterStat(name=name, usage_count=t, wins=w, total=t, rank=rank_str, league_points=mr if mr > 0 else lp))
+    # Favorite character carries the all-time best league info
+    fav_name = fbi.get("favorite_character_name", "")
+    fav_li = fbi.get("favorite_character_league_info", {}) or {}
+    if fav_name:
+        fav_cn = CHAR_CN.get(fav_name, fav_name)
+        fav_lp = fav_li.get("league_point", 0) or 0
+        fav_mr = fav_li.get("master_rating", 0) or 0
+        fav_updated = False
+        for _fc in data.characters:
+            if _fc.name == fav_cn:
+                fav_updated = True
+                if fav_mr > 0:
+                    _fc.league_points = fav_mr * 100
+                    _fc.rank = f"Master {fav_mr}MR"
+                elif fav_lp > 0:
+                    _fc.league_points = fav_lp
+                    _ftn, _fts = _lp_to_tier(fav_lp)
+                    _fc.rank = f"{_fts} {fav_lp}LP"
+                break
+        if not fav_updated and (fav_lp > 0 or fav_mr > 0):
+            _fw, _ft = wr_map.get(fav_cn, (0, 0))
+            if fav_mr > 0:
+                _frank = f"Master {fav_mr}MR"
+                _flp = fav_mr * 100
+            else:
+                _ftn, _fts = _lp_to_tier(fav_lp)
+                _frank = f"{_fts} {fav_lp}LP"
+                _flp = fav_lp
+            data.characters.append(CharacterStat(name=fav_cn, usage_count=_ft, wins=_fw, total=_ft, rank=_frank, league_points=_flp))
+
     # Keep all played characters, even with 0 games (new players)
     data.characters.sort(key=lambda x: (x.league_points if x.league_points > 0 else -1, x.usage_count), reverse=True)
 
