@@ -48,7 +48,7 @@ def _score_cell(e):
     tier = e["tier"]
     color = e.get("tier_color", "#8a8f9d")
     if tier == "Master":
-        return f'<span class="score-cell"><span class="rank-score">{label}</span><span class="tier-tag" style="color:{color}">Master</span></span>'
+        return f'<span class="score-cell"><span class="rank-score">{label}</span> <span class="tier-tag" style="color:{color}">Master</span></span>'
     return f'<span class="score-cell"><span class="rank-score">{label} <span class="tier-tag" style="color:{color}">{tier}</span></span></span>'
 
 
@@ -102,12 +102,15 @@ body{{background:#060709;color:#e8e8e8;font-family:"Microsoft YaHei",sans-serif;
 .podium-nick{{font-size:22px;font-weight:bold;color:#fff;margin:8px 0 4px}}
 .podium-char{{font-size:16px;color:#ccc;margin-bottom:8px}}
 .podium-score{{font-size:30px;font-weight:bold;color:#FFC000}}
+.tier-tag{{font-size:14px;font-weight:bold}}
+.podium-tier{{font-size:16px;font-weight:bold;margin-top:4px}}
 .podium-delta{{font-size:14px;margin-top:8px}}
 .rank-row{{display:flex;align-items:center;gap:14px;padding:10px 16px;border-bottom:1px solid #1a1d28;font-size:18px}}
 .rank-no{{width:52px;color:#F15A24;font-weight:bold}}
 .rank-nick{{flex:1;color:#fff;font-weight:600}}
 .rank-char{{width:120px;color:#ccc}}
-.rank-score{{width:140px;text-align:right;color:#FFC000;font-weight:bold}}
+.rank-score{{text-align:right;color:#FFC000;font-weight:bold}}
+.score-cell{{display:flex;flex-direction:column;align-items:flex-end;width:150px}}
 .rank-delta{{width:240px;text-align:right}}
 .delta{{font-weight:bold;margin-left:6px}}
 .delta.up{{color:#2ecc71}}
