@@ -63,6 +63,15 @@ def tier_color(rank_str):
     tier = rank_str.split()[0][:1].upper() if rank_str.strip() else ""
     return TIER_COLORS.get(tier, "#8a8f9d")
 
+def _tier_from_snapshot(rank_label, score):
+    """Derive tier short code ('D4') or 'Master' from stored snapshot fields"""
+    if "MR" in (rank_label or ""):
+        return "Master"
+    from src.buckler.client import _lp_to_tier
+    tn, ts = _lp_to_tier(score)
+    return ts
+
+
 
 def top_character(data):
     """Extract the highest-score character entry from PlayerData"""
@@ -107,5 +116,6 @@ def build_leaderboard(current_snapshot, prev_snapshot):
             "score_delta_display": score_delta_display,
             "rank_delta": rank_delta,
             "unit": unit,
+            "tier": _tier_from_snapshot(e.get("rank_label", ""), e["score"]),
         })
     return entries

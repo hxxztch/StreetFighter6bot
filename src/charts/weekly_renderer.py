@@ -61,7 +61,7 @@ def _gen_html(week_id, entries):
             <div class="medal" style="color:{color}">{name}</div>
             <div class="podium-nick">{e["nickname"]}</div>
             <div class="podium-char">{e["character"]}</div>
-            <div class="podium-score">{e["rank_label"]}</div>
+            <div class="podium-score">{e["rank_label"]}<span class="tier-tag">{e["tier"]}</span></div>
             <div class="podium-delta">{delta}</div>
         </div>'''
 
@@ -71,7 +71,7 @@ def _gen_html(week_id, entries):
             <span class="rank-no">#{e["rank"]}</span>
             <span class="rank-nick">{e["nickname"]}</span>
             <span class="rank-char">{e["character"]}</span>
-            <span class="rank-score">{e["rank_label"]}</span>
+            <span class="rank-score">{e["rank_label"]}<span class="tier-tag">{e["tier"]}</span></span>
             <span class="rank-delta">{delta}</span>
         </div>'''
 
