@@ -134,13 +134,39 @@ async def handle_message(ws, event):
     group_id = event.get("group_id", 0)
     user_id = event.get("user_id", 0)
     raw_msg = event.get("raw_message", "").strip()
+    at_user = "[CQ:at,qq=" + str(user_id) + "] "
     print("[MSG] Group:" + str(group_id) + " User:" + str(user_id) + " -> " + raw_msg[:80])
+
+    # 直接 @bot 即可对话（无需 /ai 指令）
+    self_id = str(event.get("self_id", ""))
+    at_bot = "[CQ:at,qq=" + self_id + "]"
+    if not raw_msg.startswith("/") and at_bot in raw_msg:
+        import re as _re
+        question = _re.sub(r"\[CQ:at,qq=\d+\]", "", raw_msg).strip()
+        if not question:
+            await send_group_msg(ws, group_id, at_user + "请问你想问什么？")
+            return
+        context = ""
+        sid = await get_binding(str(user_id))
+        if sid:
+            try:
+                data = await fetch_player_data(sid)
+                context = build_player_context(data)
+            except Exception:
+                pass
+        await send_group_msg(ws, group_id, at_user + "正在思考，请稍候...")
+        try:
+            answer = await ask_sf6(question, context)
+            await send_group_msg(ws, group_id, at_user + answer)
+        except Exception as e:
+            await send_group_msg(ws, group_id, at_user + "AI 调用失败：" + str(e))
+        return
+
     if not raw_msg.startswith("/"):
         return
     parts = raw_msg[1:].split(maxsplit=1)
     cmd = parts[0].lower() if parts else ""
     arg = parts[1] if len(parts) > 1 else ""
-    at_user = "[CQ:at,qq=" + str(user_id) + "] "
 
     if cmd == "bind":
         if not arg or not arg.isdigit():
