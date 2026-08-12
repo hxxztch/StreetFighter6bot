@@ -145,7 +145,7 @@ async def handle_message(ws, event):
             return
 
     elif cmd == "weekly":
-        await send_group_msg(ws, group_id, at_user + "??????????...")
+        await send_group_msg(ws, group_id, at_user + "正在生成周榜，请稍候...")
         try:
             week_id = current_week_id()
             existing = await get_weekly(week_id, str(group_id))
@@ -204,7 +204,7 @@ async def handle_message(ws, event):
             img_path = await render_weekly(week_id, group_id, entries)
             await send_group_image(ws, group_id, at_user, img_path)
         except Exception as e:
-            await send_group_msg(ws, group_id, at_user + "???????" + str(e))
+            await send_group_msg(ws, group_id, at_user + "周榜生成失败：" + str(e))
 
     elif cmd == "help":
         msg = at_user + "指令列表：\n/bind <玩家ID> — 绑定SF6玩家ID（10位纯数字）\n/unbind — 解除绑定\n/myid — 查看已绑定的ID\n/dashboard [ID|@QQ] — 生成数据面板\n/card [ID|@QQ] — 生成攻防深度分析卡片\n/weekly — 生成本群周榜\n/help — 显示本帮助"
