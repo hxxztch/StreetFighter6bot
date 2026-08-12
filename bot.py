@@ -36,6 +36,35 @@ def _fetch_sync(sf6_id):
     """Run async fetch_player_data in a fresh event loop (thread-safe)"""
     return asyncio.run(fetch_player_data(sf6_id))
 
+async def get_group_history(ws, group_id, count=30):
+    """获取群聊历史消息"""
+    try:
+        resp = await api_call(ws, "get_group_msg_history", {"group_id": int(group_id), "count": count})
+        return resp.get("data", {}).get("messages", [])
+    except Exception as e:
+        print("[History] error:", str(e))
+        return []
+
+
+def build_history_text(messages, exclude_id=""):
+    """把群聊历史转成给 AI 看的文本（作为上下文与说话风格参考）"""
+    import re as _re
+    lines = []
+    for m in messages[-30:]:
+        if not isinstance(m, dict):
+            continue
+        if str(m.get("user_id", "")) == str(exclude_id):
+            continue
+        nickname = m.get("card") or m.get("nickname") or str(m.get("user_id", ""))
+        raw = m.get("raw_message", "") or ""
+        raw = _re.sub(r"\[CQ:[^\]]+\]", "", raw).strip()
+        if not raw:
+            continue
+        lines.append(nickname + ": " + raw)
+    return "\n".join(lines)
+
+
+
 async def _fetch_and_save_weekly(ws, group_id):
     week_id = current_week_id()
     members = await api_call(ws, "get_group_member_list", {"group_id": int(group_id)})
@@ -146,8 +175,10 @@ async def handle_message(ws, event):
         if not question:
             await send_group_msg(ws, group_id, at_user + "请问你想问什么？")
             return
+        history = await get_group_history(ws, group_id)
+        history_text = build_history_text(history, exclude_id=self_id)
         try:
-            answer = await ask_chat(question)
+            answer = await ask_chat(question, history_text)
             await send_group_msg(ws, group_id, at_user + answer)
         except Exception as e:
             await send_group_msg(ws, group_id, at_user + "AI 调用失败：" + str(e))

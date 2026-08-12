@@ -62,11 +62,14 @@ async def _call(messages: list, max_tokens: int = 1200) -> str:
         return data["choices"][0]["message"]["content"].strip()
 
 
-async def ask_chat(question: str) -> str:
-    """贴吧风格闲聊（@bot 直接对话，不调数据）"""
+async def ask_chat(question: str, history: str = "") -> str:
+    """群聊对话（@bot 直接对话，可携带群聊历史作为上下文与风格参考）"""
+    system = GENERAL_CHAT_PROMPT
+    if history:
+        system += "\n\n【本群最近聊天记录，参考说话风格和当前话题】\n" + history
     return await _call(
         [
-            {"role": "system", "content": GENERAL_CHAT_PROMPT},
+            {"role": "system", "content": system},
             {"role": "user", "content": question},
         ],
         max_tokens=500,
