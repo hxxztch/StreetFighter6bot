@@ -300,10 +300,13 @@ async def fetch_player_data(sf6_id):
                 mr = li.get("master_rating", 0) or 0
                 if lp > 0 or mr > 0:
                     season_data[name] = (lp, mr)
-        # Try previous seasons
-        for sid in [s for s in seasons if s != current]:
+        # Try previous seasons (limit to recent 3 to avoid rate limiting)
+        import time as _t
+        recent_seasons = [s for s in seasons if s != current][:3]
+        for sid in recent_seasons:
             su = f"{BUCKLER_BASE_URL}/profile/{sf6_id}?season={sid}"
             print(f"[Buckler] Season {sid}: {su}")
+            _t.sleep(0.5)
             sr = _fetch(su, cookie)
             if not sr or sr.get("StatusCode",0) != 200:
                 continue
