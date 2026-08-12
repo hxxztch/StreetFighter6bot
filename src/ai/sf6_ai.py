@@ -3,6 +3,7 @@ import httpx
 from functools import lru_cache
 from pathlib import Path
 from src.config import AI_API_KEY, AI_BASE_URL, AI_MODEL, AI_ENABLED
+from src.ai.frame_data import lookup_frame_data
 
 
 # 贴吧风格闲聊（@bot 直接对话）
@@ -74,22 +75,30 @@ def load_sf6_knowledge() -> str:
         return ""
 
 
-def _with_knowledge(base_prompt: str) -> str:
+def _with_knowledge(base_prompt: str, question: str = "") -> str:
+    blocks = [base_prompt]
     knowledge = load_sf6_knowledge()
-    if not knowledge:
-        return base_prompt
-    return (
-        base_prompt
-        + "\n\n【已导入的《街霸6》肯备忘录（英格丽德版本）资料库。"
-        "涉及肯的连段、帧数、压起身、确反、特殊系统和斩杀时，请优先按资料库内容回答；"
-        "资料库未覆盖的内容再用通用 SF6 知识回答。】\n"
-        + knowledge
-    )
+    if knowledge:
+        blocks.append(
+            "【已导入的《街霸6》肯备忘录（英格丽德版本）资料库。"
+            "涉及肯的连段、帧数、压起身、确反、特殊系统和斩杀时，请优先按资料库内容回答；"
+            "资料库未覆盖的内容再用通用 SF6 知识回答。】\n"
+            + knowledge
+        )
+
+    frame_context = lookup_frame_data(question)
+    if frame_context:
+        blocks.append(
+            "【系统已从本地 FAT 帧数数据库匹配到以下权威帧数。"
+            "回答该问题时必须优先使用这些数据，不要自行编造帧数。】\n"
+            + frame_context
+        )
+    return "\n\n".join(blocks)
 
 
 async def ask_chat(question: str, history: str = "") -> str:
     """群聊对话（@bot 直接对话，可携带群聊历史作为上下文与风格参考）"""
-    system = _with_knowledge(GENERAL_CHAT_PROMPT)
+    system = _with_knowledge(GENERAL_CHAT_PROMPT, question)
     if history:
         system += "\n\n【本群最近聊天记录，参考说话风格和当前话题】\n" + history
     return await _call(
@@ -103,7 +112,7 @@ async def ask_chat(question: str, history: str = "") -> str:
 
 async def ask_sf6(question: str, context: str = "") -> str:
     """SF6 数据分析（/ai 指令，带玩家数据上下文）"""
-    messages = [{"role": "system", "content": _with_knowledge(SF6_SYSTEM_PROMPT)}]
+    messages = [{"role": "system", "content": _with_knowledge(SF6_SYSTEM_PROMPT, question)}]
     if context:
         messages.append({
             "role": "user",
