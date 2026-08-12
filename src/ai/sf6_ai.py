@@ -45,7 +45,8 @@ async def ask_sf6(question: str, context: str = "") -> str:
         "max_tokens": 1200,
     }
 
-    async with httpx.AsyncClient(timeout=90) as client:
+    # 关闭系统代理，直连 DeepSeek（避免 Clash/系统代理干扰国内 API）
+    async with httpx.AsyncClient(timeout=90, trust_env=False) as client:
         resp = await client.post(url, headers=headers, json=payload)
         resp.raise_for_status()
         data = resp.json()
