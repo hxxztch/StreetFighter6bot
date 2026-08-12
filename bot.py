@@ -31,6 +31,10 @@ async def api_call(ws, action, params, timeout=15):
     finally:
         PENDING.pop(echo, None)
 
+def _fetch_sync(sf6_id):
+    """Run async fetch_player_data in a fresh event loop (thread-safe)"""
+    return asyncio.run(fetch_player_data(sf6_id))
+
 async def send_group_msg(ws, group_id, text):
     """Send a text message to a QQ group"""
     msg = {
@@ -156,16 +160,27 @@ async def handle_message(ws, event):
                     member_map[qq] = nickname
 
                 bindings = await all_bindings()
+                target = [(qq, sf6_id) for qq, sf6_id in bindings if qq in member_map]
+
+                loop = asyncio.get_running_loop()
+                sem = asyncio.Semaphore(3)
+
+                async def fetch_one(qq, sf6_id):
+                    async with sem:
+                        try:
+                            data = await loop.run_in_executor(None, _fetch_sync, sf6_id)
+                            return qq, sf6_id, data
+                        except Exception as e:
+                            print("[Weekly] skip " + qq + ": " + str(e))
+                            return qq, sf6_id, None
+
+                results = await asyncio.gather(*[fetch_one(qq, sf6_id) for qq, sf6_id in target])
+
                 snapshot = []
-                for qq, sf6_id in bindings:
-                    if qq not in member_map:
+                for qq, sf6_id, data in results:
+                    if data is None:
                         continue
-                    try:
-                        data = await fetch_player_data(sf6_id)
-                        tc = top_character(data)
-                    except Exception as e:
-                        print("[Weekly] skip " + qq + ": " + str(e))
-                        continue
+                    tc = top_character(data)
                     if tc is None:
                         continue
                     snapshot.append({
