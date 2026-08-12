@@ -4,6 +4,7 @@ from pathlib import Path
 from src.config import CHART_OUTPUT_DIR, DATA_DIR
 from src.buckler.models import PlayerData
 from src.analyzer.stats import analyze
+from src.leaderboard import tier_color
 
 # Character tool name mapping for Buckler CDN images
 CHAR_TOOL = {
@@ -150,10 +151,11 @@ def _gen_html(data: PlayerData) -> str:
     if chars:
         r = chars[0]
         rs = r.get("rank", "")
+        color = tier_color(rs)
         if "Master" in rs:
             import re as _re
             m = _re.search(r'(\d+)MR', rs)
-            rank_display = f'<div class=\"rank-box\"><div class=\"rank-name\">MASTER</div><div class=\"rank-lp\">{m.group(1)}<span style=\"font-size:10px\"> MR</span></div></div>'
+            rank_display = f'<div class=\"rank-box\" style=\"border-color:{color}\"><div class=\"rank-name\" style=\"color:{color}\">MASTER</div><div class=\"rank-lp\">{m.group(1)}<span style=\"font-size:10px\"> MR</span></div></div>'
         else:
             tier_short = rs.split()[0] if rs.strip() else ""
             tier_map = {"D1":"Diamond 1","D2":"Diamond 2","D3":"Diamond 3","D4":"Diamond 4","D5":"Diamond 5",
@@ -165,7 +167,7 @@ def _gen_html(data: PlayerData) -> str:
                         "R1":"Rookie 1","R2":"Rookie 2","R3":"Rookie 3","R4":"Rookie 4","R5":"Rookie 5"}
             tier_name = tier_map.get(tier_short, tier_short)
             rs_clean = rs.split()[-1].replace("LP","")
-            rank_display = f'<div class=\"rank-box\"><div class=\"rank-name\">{tier_name}</div><div class=\"rank-lp\">{rs_clean}<span style=\"font-size:10px\"> LP</span></div></div>'
+            rank_display = f'<div class=\"rank-box\" style=\"border-color:{color}\"><div class=\"rank-name\" style=\"color:{color}\">{tier_name}</div><div class=\"rank-lp\">{rs_clean}<span style=\"font-size:10px\"> LP</span></div></div>'
     
     return f"""<!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8">

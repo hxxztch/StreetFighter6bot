@@ -42,6 +42,28 @@ def _unit_from_label(label):
     return "LP"
 
 
+TIER_COLORS = {
+    "R": "#7ec850",  # Rookie - green
+    "I": "#6b8aa8",  # Iron - steel blue
+    "B": "#c48a5c",  # Bronze
+    "S": "#b8c4cc",  # Silver
+    "G": "#f4c430",  # Gold
+    "P": "#23c8c8",  # Platinum - cyan
+    "D": "#b388ff",  # Diamond - purple
+    "M": "#ff5a3d",  # Master - red-orange
+}
+
+
+def tier_color(rank_str):
+    """Return SF6 rank tier color for a rank string like 'D3 22205LP' or 'Master 1469MR'"""
+    if not rank_str:
+        return "#8a8f9d"
+    if rank_str.startswith("Master"):
+        return TIER_COLORS["M"]
+    tier = rank_str.split()[0][:1].upper() if rank_str.strip() else ""
+    return TIER_COLORS.get(tier, "#8a8f9d")
+
+
 def top_character(data):
     """Extract the highest-score character entry from PlayerData"""
     if not data or not getattr(data, "characters", None):
