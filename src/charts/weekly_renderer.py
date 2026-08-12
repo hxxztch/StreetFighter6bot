@@ -49,6 +49,8 @@ def _score_cell(e):
     color = e.get("tier_color", "#8a8f9d")
     if tier == "Master":
         return f'<span class="score-cell"><span class="rank-score">{label}</span> <span class="tier-tag" style="color:{color}">Master</span></span>'
+    if not tier:
+        return f'<span class="score-cell"><span class="rank-score">{label}</span></span>'
     return f'<span class="score-cell"><span class="rank-score">{label} <span class="tier-tag" style="color:{color}">{tier}</span></span></span>'
 
 
@@ -72,7 +74,7 @@ def _gen_html(week_id, entries):
             <div class="podium-nick">{e["nickname"]}</div>
             <div class="podium-char">{e["character"]}</div>
             <div class="podium-score">{e["rank_label"]}</div>
-            <div class="podium-tier" style="color:{e["tier_color"]}">{e["tier_full"]}</div>
+            <div class="podium-tier" style="color:{e["tier_color"]}">{e["tier_full"] or "&nbsp;"}</div>
             <div class="podium-delta">{delta}</div>
         </div>'''
 

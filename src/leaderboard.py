@@ -67,6 +67,8 @@ def _tier_from_snapshot(rank_label, score):
     """Derive (short code, full name) from stored snapshot fields"""
     if "MR" in (rank_label or ""):
         return "Master", "Master"
+    if "LP" not in (rank_label or ""):
+        return "", ""  # Unranked / no rank
     from src.buckler.client import _lp_to_tier
     tn, ts = _lp_to_tier(score)
     return ts, tn
