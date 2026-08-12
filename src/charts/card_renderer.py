@@ -23,11 +23,11 @@ def _gen_html(a):
     s = a.get("streaks", {})
     def _streak_badge(stype, cur, cur_type, max_w, max_l):
         cls = "streak-bad" if stype == "bad" else "streak-good"
-        label = "\u5168\u6a21\u5f0f" if stype == "all" else "\u7eaf\u6392\u4f4d"
+        label = "\u5168\u6a21\u5f0f\u00b7\u8fd130\u573a" if stype == "all" else "\u7eaf\u6392\u4f4d"
         if cur_type == "win": cur_str = "\u5f53\u524d " + str(cur) + " \u8fde\u8d5c"
         elif cur_type == "lose": cur_str = "\u5f53\u524d " + str(cur) + " \u8fde\u8d25"
         else: cur_str = "\u5f53\u524d -"
-        return "<div class='streak-cell'><div class='streak-label'>" + label + "</div><div class='streak-stats'><span class='s-w'>\u2714 " + str(max_w) + "</span><span class='s-l'>\u2716 " + str(max_l) + "</span><span class='" + cls + "'>" + cur_str + "</span></div></div>"
+        return "<div class='streak-cell'><div class='streak-label'>" + label + "</div><div class='streak-stats'><span class='s-w'>\u6700\u957f" + str(max_w) + "\u8fde\u8d5c</span><span class='s-l'>\u6700\u957f" + str(max_l) + "\u8fde\u8d25</span><span class='" + cls + "'>" + cur_str + "</span></div></div>"
     streak_html = _streak_badge("all", s.get("all_cur", 0), s.get("all_cur_type", ""), s.get("all_max_win", 0), s.get("all_max_lose", 0)) + _streak_badge("ranked", s.get("ranked_cur", 0), s.get("ranked_cur_type", ""), s.get("ranked_max_win", 0), s.get("ranked_max_lose", 0))
 
     sa_items = a.get("sa_items", [])
