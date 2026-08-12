@@ -13,7 +13,7 @@ from src.buckler.models import PlayerData, GameModeTime, CharacterStat, TechStat
 from src.analyzer.stats import analyze
 from src.charts.dashboard_renderer import render as generate_charts
 from src.charts.card_renderer import render_card
-from src.ai.sf6_ai import ask_sf6, build_player_context
+from src.ai.sf6_ai import ask_sf6, ask_chat, build_player_context
 import dataclasses
 
 WS_URL = "ws://127.0.0.1:3001"
@@ -146,17 +146,9 @@ async def handle_message(ws, event):
         if not question:
             await send_group_msg(ws, group_id, at_user + "请问你想问什么？")
             return
-        context = ""
-        sid = await get_binding(str(user_id))
-        if sid:
-            try:
-                data = await fetch_player_data(sid)
-                context = build_player_context(data)
-            except Exception:
-                pass
         await send_group_msg(ws, group_id, at_user + "正在思考，请稍候...")
         try:
-            answer = await ask_sf6(question, context)
+            answer = await ask_chat(question)
             await send_group_msg(ws, group_id, at_user + answer)
         except Exception as e:
             await send_group_msg(ws, group_id, at_user + "AI 调用失败：" + str(e))

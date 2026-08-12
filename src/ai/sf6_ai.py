@@ -3,6 +3,15 @@ import httpx
 from src.config import AI_API_KEY, AI_BASE_URL, AI_MODEL, AI_ENABLED
 
 
+# 贴吧风格闲聊（@bot 直接对话）
+GENERAL_CHAT_PROMPT = """你是一个随和幽默的聊天助手，说话像贴吧网友一样接地气、简短有趣。
+回答要求：
+- 一两句话为主，不要长篇大论
+- 不要一上来就列一堆条目
+- 可以玩梗、用点网络用语，但别太油腻
+"""
+
+# SF6 教练提示词（/ai 数据分析）
 SF6_SYSTEM_PROMPT = """你是《街头霸王6》（Street Fighter 6）的专业格斗教练与数据分析助手，名字叫「SF6教练」。
 
 你的核心能力：
@@ -20,18 +29,10 @@ SF6_SYSTEM_PROMPT = """你是《街头霸王6》（Street Fighter 6）的专业�
 """
 
 
-async def ask_sf6(question: str, context: str = "") -> str:
-    """调用 AI 接口，返回 SF6 特训回答"""
+async def _call(messages: list, max_tokens: int = 1200) -> str:
+    """共用底层调用（OpenAI 兼容协议）"""
     if not AI_ENABLED:
         raise RuntimeError("AI 未配置：请在 .env 中设置 AI_API_KEY")
-
-    messages = [{"role": "system", "content": SF6_SYSTEM_PROMPT}]
-    if context:
-        messages.append({
-            "role": "user",
-            "content": "以下是提问玩家的真实数据，请结合分析：\n" + context,
-        })
-    messages.append({"role": "user", "content": question})
 
     url = AI_BASE_URL.rstrip("/") + "/chat/completions"
     headers = {
@@ -42,7 +43,7 @@ async def ask_sf6(question: str, context: str = "") -> str:
         "model": AI_MODEL,
         "messages": messages,
         "temperature": 0.7,
-        "max_tokens": 1200,
+        "max_tokens": max_tokens,
     }
 
     # 关闭系统代理，直连 DeepSeek（避免 Clash/系统代理干扰国内 API）
@@ -51,6 +52,29 @@ async def ask_sf6(question: str, context: str = "") -> str:
         resp.raise_for_status()
         data = resp.json()
         return data["choices"][0]["message"]["content"].strip()
+
+
+async def ask_chat(question: str) -> str:
+    """贴吧风格闲聊（@bot 直接对话，不调数据）"""
+    return await _call(
+        [
+            {"role": "system", "content": GENERAL_CHAT_PROMPT},
+            {"role": "user", "content": question},
+        ],
+        max_tokens=500,
+    )
+
+
+async def ask_sf6(question: str, context: str = "") -> str:
+    """SF6 数据分析（/ai 指令，带玩家数据上下文）"""
+    messages = [{"role": "system", "content": SF6_SYSTEM_PROMPT}]
+    if context:
+        messages.append({
+            "role": "user",
+            "content": "以下是提问玩家的真实数据，请结合分析：\n" + context,
+        })
+    messages.append({"role": "user", "content": question})
+    return await _call(messages, max_tokens=1200)
 
 
 def build_player_context(data) -> str:
