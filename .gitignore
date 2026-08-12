@@ -65,3 +65,6 @@ data/sf6bot2.db*
 /slim_client.py
 /unify_msg.py
 /dash*.html
+
+data/buckler_session/
+data/_profile_chunk.js
