@@ -42,6 +42,16 @@ def _delta_badge(score_delta, score_delta_display, rank_delta, unit):
     return " ".join(parts)
 
 
+def _score_cell(e):
+    """Return score + tier HTML for a rank row"""
+    label = e["rank_label"]
+    tier = e["tier"]
+    color = e.get("tier_color", "#8a8f9d")
+    if tier == "Master":
+        return f'<span class="score-cell"><span class="rank-score">{label}</span><span class="tier-tag" style="color:{color}">Master</span></span>'
+    return f'<span class="score-cell"><span class="rank-score">{label} <span class="tier-tag" style="color:{color}">{tier}</span></span></span>'
+
+
 def _gen_html(week_id, entries):
     top3 = [e for e in entries if e["rank"] <= 3]
     rest_top = [e for e in entries if 4 <= e["rank"] <= 10]
@@ -61,7 +71,8 @@ def _gen_html(week_id, entries):
             <div class="medal" style="color:{color}">{name}</div>
             <div class="podium-nick">{e["nickname"]}</div>
             <div class="podium-char">{e["character"]}</div>
-            <div class="podium-score">{e["rank_label"]}<span class="tier-tag">{e["tier"]}</span></div>
+            <div class="podium-score">{e["rank_label"]}</div>
+            <div class="podium-tier" style="color:{e["tier_color"]}">{e["tier_full"]}</div>
             <div class="podium-delta">{delta}</div>
         </div>'''
 
@@ -71,7 +82,7 @@ def _gen_html(week_id, entries):
             <span class="rank-no">#{e["rank"]}</span>
             <span class="rank-nick">{e["nickname"]}</span>
             <span class="rank-char">{e["character"]}</span>
-            <span class="rank-score">{e["rank_label"]}<span class="tier-tag">{e["tier"]}</span></span>
+            {_score_cell(e)}
             <span class="rank-delta">{delta}</span>
         </div>'''
 

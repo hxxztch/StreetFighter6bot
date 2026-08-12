@@ -64,12 +64,12 @@ def tier_color(rank_str):
     return TIER_COLORS.get(tier, "#8a8f9d")
 
 def _tier_from_snapshot(rank_label, score):
-    """Derive tier short code ('D4') or 'Master' from stored snapshot fields"""
+    """Derive (short code, full name) from stored snapshot fields"""
     if "MR" in (rank_label or ""):
-        return "Master"
+        return "Master", "Master"
     from src.buckler.client import _lp_to_tier
     tn, ts = _lp_to_tier(score)
-    return ts
+    return ts, tn
 
 
 
@@ -116,6 +116,8 @@ def build_leaderboard(current_snapshot, prev_snapshot):
             "score_delta_display": score_delta_display,
             "rank_delta": rank_delta,
             "unit": unit,
-            "tier": _tier_from_snapshot(e.get("rank_label", ""), e["score"]),
+            "tier": _tier_from_snapshot(e.get("rank_label", ""), e["score"])[0],
+            "tier_full": _tier_from_snapshot(e.get("rank_label", ""), e["score"])[1],
+            "tier_color": tier_color(_tier_from_snapshot(e.get("rank_label", ""), e["score"])[0]),
         })
     return entries
