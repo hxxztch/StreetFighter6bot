@@ -5,6 +5,9 @@ import websockets
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))
 from src.database import get_binding, bind_qq_to_sf6, get_cached_stats, set_cached_stats
+from src.database import all_bindings, save_weekly, get_weekly, get_prev_weekly
+from src.leaderboard import current_week_id, top_character, build_leaderboard
+from src.charts.weekly_renderer import render_weekly
 from src.buckler.client import fetch_player_data
 from src.buckler.models import PlayerData, GameModeTime, CharacterStat, TechStats, DriveUsage, MatchupStat, RecentMatch
 from src.analyzer.stats import analyze
@@ -14,6 +17,19 @@ import dataclasses
 
 WS_URL = "ws://127.0.0.1:3001"
 TOKEN = "K9koSYAg1B9aOY-3m_axCfrCDdLkP7B7XdnRawxS7ZA"
+
+PENDING = {}
+
+async def api_call(ws, action, params, timeout=15):
+    import uuid
+    echo = str(uuid.uuid4())
+    fut = asyncio.get_running_loop().create_future()
+    PENDING[echo] = fut
+    await ws.send(json.dumps({"action": action, "params": params, "echo": echo}))
+    try:
+        return await asyncio.wait_for(fut, timeout=timeout)
+    finally:
+        PENDING.pop(echo, None)
 
 async def send_group_msg(ws, group_id, text):
     """Send a text message to a QQ group"""
@@ -124,8 +140,59 @@ async def handle_message(ws, event):
             await send_group_msg(ws, group_id, at_user + "卡片生成失败：" + str(e))
             return
 
+    elif cmd == "weekly":
+        await send_group_msg(ws, group_id, at_user + "??????????...")
+        try:
+            week_id = current_week_id()
+            existing = await get_weekly(week_id, str(group_id))
+
+            if not existing:
+                # First call this week: fetch fresh data
+                members = await api_call(ws, "get_group_member_list", {"group_id": int(group_id)})
+                member_map = {}
+                for m in members.get("data", []):
+                    qq = str(m.get("user_id"))
+                    nickname = m.get("card") or m.get("nickname") or qq
+                    member_map[qq] = nickname
+
+                bindings = await all_bindings()
+                snapshot = []
+                for qq, sf6_id in bindings:
+                    if qq not in member_map:
+                        continue
+                    try:
+                        data = await fetch_player_data(sf6_id)
+                        tc = top_character(data)
+                    except Exception as e:
+                        print("[Weekly] skip " + qq + ": " + str(e))
+                        continue
+                    if tc is None:
+                        continue
+                    snapshot.append({
+                        "qq_id": qq, "sf6_id": sf6_id,
+                        "nickname": member_map.get(qq, qq),
+                        "character": tc["name"],
+                        "rank_label": tc["label"],
+                        "score": tc["score"],
+                    })
+
+                snapshot.sort(key=lambda x: -x["score"])
+                for i, e in enumerate(snapshot):
+                    e["rank"] = i + 1
+                await save_weekly(week_id, str(group_id), snapshot)
+                current = snapshot
+            else:
+                current = existing
+
+            prev = await get_prev_weekly(week_id, str(group_id))
+            entries = build_leaderboard(current, prev)
+            img_path = await render_weekly(week_id, group_id, entries)
+            await send_group_image(ws, group_id, at_user, img_path)
+        except Exception as e:
+            await send_group_msg(ws, group_id, at_user + "???????" + str(e))
+
     elif cmd == "help":
-        msg = at_user + "指令列表：\n/bind <玩家ID> — 绑定SF6玩家ID（10位纯数字）\n/unbind — 解除绑定\n/myid — 查看已绑定的ID\n/dashboard [ID|@QQ] — 生成数据面板\n/card [ID|@QQ] — 生成攻防深度分析卡片\n/help — 显示本帮助"
+        msg = at_user + "指令列表：\n/bind <玩家ID> — 绑定SF6玩家ID（10位纯数字）\n/unbind — 解除绑定\n/myid — 查看已绑定的ID\n/dashboard [ID|@QQ] — 生成数据面板\n/card [ID|@QQ] — 生成攻防深度分析卡片\n/weekly — 生成本群周榜\n/help — 显示本帮助"
         await send_group_msg(ws, group_id, msg)
     elif cmd == "myid":
         sid = await get_binding(str(user_id))
@@ -187,6 +254,10 @@ async def main():
                         data = json.loads(raw)
                         if data.get("post_type") == "message":
                             asyncio.create_task(handle_message(ws, data))
+                        elif data.get("echo") in PENDING:
+                            fut = PENDING[data["echo"]]
+                            if not fut.done():
+                                fut.set_result(data)
                         elif data.get("post_type") == "meta_event":
                             mt = data.get("meta_event_type", "")
                             if mt not in ("lifecycle", "heartbeat"):
