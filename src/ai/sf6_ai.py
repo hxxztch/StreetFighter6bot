@@ -1,5 +1,7 @@
 """SF6 特训 AI 助手：OpenAI 兼容接口 + 街霸 6 领域提示词"""
 import httpx
+from functools import lru_cache
+from pathlib import Path
 from src.config import AI_API_KEY, AI_BASE_URL, AI_MODEL, AI_ENABLED
 
 
@@ -62,9 +64,32 @@ async def _call(messages: list, max_tokens: int = 1200) -> str:
         return data["choices"][0]["message"]["content"].strip()
 
 
+@lru_cache(maxsize=1)
+def load_sf6_knowledge() -> str:
+    """读取已导入的肯备忘录资料库，缺失时静默降级为空字符串。"""
+    knowledge_path = Path(__file__).resolve().parents[2] / "data" / "sf6_knowledge.txt"
+    try:
+        return knowledge_path.read_text(encoding="utf-8").strip()
+    except Exception:
+        return ""
+
+
+def _with_knowledge(base_prompt: str) -> str:
+    knowledge = load_sf6_knowledge()
+    if not knowledge:
+        return base_prompt
+    return (
+        base_prompt
+        + "\n\n【已导入的《街霸6》肯备忘录（英格丽德版本）资料库。"
+        "涉及肯的连段、帧数、压起身、确反、特殊系统和斩杀时，请优先按资料库内容回答；"
+        "资料库未覆盖的内容再用通用 SF6 知识回答。】\n"
+        + knowledge
+    )
+
+
 async def ask_chat(question: str, history: str = "") -> str:
     """群聊对话（@bot 直接对话，可携带群聊历史作为上下文与风格参考）"""
-    system = GENERAL_CHAT_PROMPT
+    system = _with_knowledge(GENERAL_CHAT_PROMPT)
     if history:
         system += "\n\n【本群最近聊天记录，参考说话风格和当前话题】\n" + history
     return await _call(
@@ -78,7 +103,7 @@ async def ask_chat(question: str, history: str = "") -> str:
 
 async def ask_sf6(question: str, context: str = "") -> str:
     """SF6 数据分析（/ai 指令，带玩家数据上下文）"""
-    messages = [{"role": "system", "content": SF6_SYSTEM_PROMPT}]
+    messages = [{"role": "system", "content": _with_knowledge(SF6_SYSTEM_PROMPT)}]
     if context:
         messages.append({
             "role": "user",
