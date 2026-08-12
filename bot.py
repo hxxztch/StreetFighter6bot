@@ -13,6 +13,7 @@ from src.buckler.models import PlayerData, GameModeTime, CharacterStat, TechStat
 from src.analyzer.stats import analyze
 from src.charts.dashboard_renderer import render as generate_charts
 from src.charts.card_renderer import render_card
+from src.ai.sf6_ai import ask_sf6, build_player_context
 import dataclasses
 
 WS_URL = "ws://127.0.0.1:3001"
@@ -214,8 +215,27 @@ async def handle_message(ws, event):
         except Exception as e:
             await send_group_msg(ws, group_id, at_user + "周榜刷新失败：" + str(e))
 
+    elif cmd == "ai":
+        if not arg:
+            await send_group_msg(ws, group_id, at_user + "请输入问题：/ai <你的问题>")
+            return
+        context = ""
+        sid = await get_binding(str(user_id))
+        if sid:
+            try:
+                data = await fetch_player_data(sid)
+                context = build_player_context(data)
+            except Exception:
+                pass
+        await send_group_msg(ws, group_id, at_user + "正在思考，请稍候...")
+        try:
+            answer = await ask_sf6(arg, context)
+            await send_group_msg(ws, group_id, at_user + answer)
+        except Exception as e:
+            await send_group_msg(ws, group_id, at_user + "AI 调用失败：" + str(e))
+
     elif cmd == "help":
-        msg = at_user + "指令列表：\n/bind <玩家ID> — 绑定SF6玩家ID（10位纯数字）\n/unbind — 解除绑定\n/myid — 查看已绑定的ID\n/dashboard [ID|@QQ] — 生成数据面板\n/card [ID|@QQ] — 生成攻防深度分析卡片\n/weekly — 查看当前周榜\n/help — 显示本帮助"
+        msg = at_user + "指令列表：\n/bind <玩家ID> — 绑定SF6玩家ID（10位纯数字）\n/unbind — 解除绑定\n/myid — 查看已绑定的ID\n/dashboard [ID|@QQ] — 生成数据面板\n/card [ID|@QQ] — 生成攻防深度分析卡片\n/weekly — 查看当前周榜\n/ai <问题> — 向SF6教练提问\n/help — 显示本帮助"
         await send_group_msg(ws, group_id, msg)
     elif cmd == "myid":
         sid = await get_binding(str(user_id))
