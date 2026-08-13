@@ -57,6 +57,8 @@ MOVE_HINTS_CN = {
     "确反": ["punish"],
     "剪刀脚": ["knee press", "double knee press", "head press"],
     "电钻": ["psycho crusher"],
+    "老桑快车": ["siberian express"],
+    "罗宋汤": ["borscht dynamite"],
 }
 
 
