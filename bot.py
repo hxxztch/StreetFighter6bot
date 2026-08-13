@@ -179,6 +179,9 @@ async def handle_message(ws, event):
         history_text = build_history_text(history, exclude_id=self_id)
         try:
             answer = await ask_chat(question, history_text)
+            answer = (answer or "").strip()
+            if not answer:
+                answer = "这条我暂时没查到，建议到训练模式里确认。"
             await send_group_msg(ws, group_id, at_user + answer)
         except Exception as e:
             await send_group_msg(ws, group_id, at_user + "AI 调用失败：" + str(e))
@@ -277,6 +280,9 @@ async def handle_message(ws, event):
                 pass
         try:
             answer = await ask_sf6(arg, context)
+            answer = (answer or "").strip()
+            if not answer:
+                answer = "这条我暂时没查到，建议到训练模式里确认。"
             await send_group_msg(ws, group_id, at_user + answer)
         except Exception as e:
             await send_group_msg(ws, group_id, at_user + "AI 调用失败：" + str(e))

@@ -22,6 +22,21 @@ GENERAL_CHAT_PROMPT = """你是一个温柔、耐心的聊天助手，也熟悉�
 - 涉及具体帧数别乱编，不确定就说明以训练模式帧数表为准
 """
 
+COMMUNITY_MOVE_GLOSSARY = """常见圈内招式称呼对照：
+- 剪刀脚：维嘉的 Double Knee Press / Head Press，指令通常 236K 或 28K
+- 凹：升龙或无敌技
+- 波：波动拳
+- 升龙：Shoryuken / 623P
+- 龙尾：龙卷旋风腿 / Tatsumaki
+- 迅雷：肯的 Quick Dash / Thunder Kick 系列
+- 正蹬：Ken 的 Kazekiri
+- 迸：Drive Impact
+- 绿冲：Drive Rush
+- 蓝防：Drive Parry
+- 斗反：Drive Reversal
+- 拆投：Throw Escape
+"""
+
 # SF6 教练提示词（/ai 数据分析）
 SF6_SYSTEM_PROMPT = """你是《街头霸王6》（Street Fighter 6）的专业格斗教练与数据分析助手，名字叫「SF6教练」。
 
@@ -77,7 +92,7 @@ def load_sf6_knowledge() -> str:
 
 
 def _with_knowledge(base_prompt: str, question: str = "") -> str:
-    blocks = [base_prompt]
+    blocks = [base_prompt + "\n\n" + COMMUNITY_MOVE_GLOSSARY]
     knowledge = load_sf6_knowledge()
     if knowledge:
         blocks.append(

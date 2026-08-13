@@ -55,6 +55,7 @@ MOVE_HINTS_CN = {
     "斗反": ["drive reversal", "reversal"],
     "蓝防": ["drive parry", "parry"],
     "确反": ["punish"],
+    "剪刀脚": ["knee press", "double knee", "head press"],
 }
 
 
