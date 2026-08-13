@@ -56,6 +56,7 @@ MOVE_HINTS_CN = {
     "蓝防": ["drive parry", "parry"],
     "确反": ["punish"],
     "剪刀脚": ["knee press", "double knee press", "head press"],
+    "电钻": ["psycho crusher"],
 }
 
 
@@ -185,21 +186,25 @@ def _score_move(question: str, name: str, move: dict, zh_name: str = "") -> int:
             score += 4
 
     for hint, keywords in MOVE_HINTS_CN.items():
-        if hint in question and any(k in searchable for k in keywords):
+        if hint in q and any(k in searchable for k in keywords):
             score += 5
 
     for hint, command in STRENGTH_HINTS.items():
-        if hint in question and command in searchable and score > 0:
+        if hint in q and command in searchable and score > 0:
             score += 4
 
+    if "电钻" in q and "psycho crusher" in searchable:
+        if not any(word in searchable for word in ("final", "unlimited")):
+            score += 8
+
     if any(word in searchable for word in ("overhead", "throw", "drive impact", "drive reversal")):
-        if "中段" in question and "overhead" in searchable:
+        if "中段" in q and "overhead" in searchable:
             score += 5
-        if "投" in question and "throw" in searchable:
+        if "投" in q and "throw" in searchable:
             score += 5
-        if "迸" in question and "drive impact" in searchable:
+        if "迸" in q and "drive impact" in searchable:
             score += 5
-        if "斗反" in question and "drive reversal" in searchable:
+        if "斗反" in q and "drive reversal" in searchable:
             score += 5
 
     return score
