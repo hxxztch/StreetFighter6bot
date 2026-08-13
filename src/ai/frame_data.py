@@ -41,7 +41,8 @@ CHARACTER_ALIASES = {
 MOVE_HINTS_CN = {
     "升龙": ["shoryuken", "shoryu"],
     "波动": ["hadouken", "hadoken", "fireball"],
-    "波": ["hadouken", "hadoken", "fireball"],
+    "波掌": ["hashogeki"],
+    "波掌击": ["hashogeki"],
     "旋风": ["tatsu", "tornado"],
     "龙尾": ["tatsu", "tornado"],
     "正蹬": ["kazekiri"],
@@ -54,6 +55,14 @@ MOVE_HINTS_CN = {
     "斗反": ["drive reversal", "reversal"],
     "蓝防": ["drive parry", "parry"],
     "确反": ["punish"],
+}
+
+
+STRENGTH_HINTS = {
+    "轻": "lp",
+    "中": "mp",
+    "重": "hp",
+    "od": "pp",
 }
 
 
@@ -173,6 +182,10 @@ def _score_move(question: str, name: str, move: dict, zh_name: str = "") -> int:
     for hint, keywords in MOVE_HINTS_CN.items():
         if hint in question and any(k in searchable for k in keywords):
             score += 5
+
+    for hint, command in STRENGTH_HINTS.items():
+        if hint in question and command in searchable and score > 0:
+            score += 4
 
     if any(word in searchable for word in ("overhead", "throw", "drive impact", "drive reversal")):
         if "中段" in question and "overhead" in searchable:
