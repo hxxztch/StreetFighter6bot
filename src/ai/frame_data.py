@@ -175,7 +175,11 @@ def _score_move(question: str, name: str, move: dict, zh_name: str = "") -> int:
     if zh_name:
         searchable += " " + zh_name.lower()
 
-    notation_tokens = re.findall(r"[0-9]{0,3}[a-z]{1,4}", q.replace(" ", ""))
+    notation_tokens = [
+        token
+        for token in re.findall(r"[0-9]{0,3}[a-z]{1,4}", q.replace(" ", ""))
+        if token not in {"od", "ex", "lp", "mp", "hp", "lk", "mk", "hk", "pp", "kk"}
+    ]
     for token in notation_tokens:
         if token in searchable:
             score += 4
