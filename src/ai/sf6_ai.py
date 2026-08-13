@@ -55,6 +55,7 @@ async def _call(messages: list, max_tokens: int = 1200) -> str:
         "messages": messages,
         "temperature": 0.7,
         "max_tokens": max_tokens,
+        "extra_body": {"thinking": {"type": "disabled"}},
     }
 
     # 关闭系统代理，直连 DeepSeek（避免 Clash/系统代理干扰国内 API）
@@ -106,7 +107,7 @@ async def ask_chat(question: str, history: str = "") -> str:
             {"role": "system", "content": system},
             {"role": "user", "content": question},
         ],
-        max_tokens=500,
+        max_tokens=1600,
     )
 
 
@@ -119,7 +120,7 @@ async def ask_sf6(question: str, context: str = "") -> str:
             "content": "以下是提问玩家的真实数据，请结合分析：\n" + context,
         })
     messages.append({"role": "user", "content": question})
-    return await _call(messages, max_tokens=1200)
+    return await _call(messages, max_tokens=2000)
 
 
 def build_player_context(data) -> str:
