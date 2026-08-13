@@ -55,7 +55,7 @@ MOVE_HINTS_CN = {
     "斗反": ["drive reversal", "reversal"],
     "蓝防": ["drive parry", "parry"],
     "确反": ["punish"],
-    "剪刀脚": ["knee press", "double knee", "head press"],
+    "剪刀脚": ["knee press", "double knee press", "head press"],
 }
 
 
@@ -209,7 +209,19 @@ def lookup_frame_data(question: str, max_chars: int = 12000) -> str:
 
     character = _find_character(question)
     if not character:
-        return ""
+        all_zh = load_move_names_zh()
+        for candidate_char, candidate_obj in data.items():
+            candidate_moves = candidate_obj.get("moves", {}).get("normal", {})
+            candidate_zh = all_zh.get(candidate_char, {})
+            for move_name, move in candidate_moves.items():
+                zh_name = candidate_zh.get(move_name, {}).get("zh", "")
+                if _score_move(question, move_name, move, zh_name) > 0:
+                    character = candidate_char
+                    break
+            if character:
+                break
+        if not character:
+            return ""
 
     moves = data[character].get("moves", {}).get("normal", {})
     if not moves:
