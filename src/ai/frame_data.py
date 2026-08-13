@@ -66,6 +66,15 @@ def load_frame_data() -> dict:
         return {}
 
 
+@lru_cache(maxsize=1)
+def load_move_names_zh() -> dict:
+    path = Path(__file__).resolve().parents[2] / "data" / "sf6_move_names_zh.json"
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except Exception:
+        return {}
+
+
 def _normalize(value: str) -> str:
     return re.sub(r"[^a-z0-9]", "", value.lower())
 
@@ -102,7 +111,7 @@ def _format_number(value) -> str:
     return str(value)
 
 
-def _format_move(name: str, move: dict) -> str:
+def _format_move(name: str, move: dict, zh_name: str = "") -> str:
     commands = [move.get(k) for k in ("plnCmd", "numCmd", "ezCmd") if move.get(k)]
     command_text = " / ".join(_format_number(c) for c in commands) if commands else "无指令"
 
@@ -123,18 +132,21 @@ def _format_move(name: str, move: dict) -> str:
         if key in move:
             fields.append(f"{label} {_format_number(move[key])}")
 
-    line = f"[{name}] 指令 {command_text}；" + "，".join(fields)
+    title = f"{zh_name} / {name}" if zh_name else name
+    line = f"[{title}] 指令 {command_text}；" + "，".join(fields)
     extra = move.get("extraInfo")
     if isinstance(extra, list) and extra:
         line += "；备注 " + "；".join(str(x) for x in extra)
     return line
 
 
-def _score_move(question: str, name: str, move: dict) -> int:
+def _score_move(question: str, name: str, move: dict, zh_name: str = "") -> int:
     q = question.lower()
     score = 0
 
     if name.lower() in q:
+        score += 6
+    if zh_name and zh_name in question:
         score += 6
 
     searchable = " ".join(
@@ -150,6 +162,8 @@ def _score_move(question: str, name: str, move: dict) -> int:
         )
         if move.get(k)
     ).lower()
+    if zh_name:
+        searchable += " " + zh_name.lower()
 
     notation_tokens = re.findall(r"[0-9]{0,3}[a-z]{1,4}", q.replace(" ", ""))
     for token in notation_tokens:
@@ -188,13 +202,15 @@ def lookup_frame_data(question: str, max_chars: int = 12000) -> str:
         return ""
 
     scored = []
+    zh_map = load_move_names_zh().get(character, {})
     for name, move in moves.items():
-        score = _score_move(question, name, move)
+        zh_name = zh_map.get(name, {}).get("zh", "")
+        score = _score_move(question, name, move, zh_name)
         if score > 0:
-            scored.append((score, name, move))
+            scored.append((score, name, move, zh_name))
 
     scored.sort(key=lambda item: (-item[0], item[1]))
-    selected = [item[2] for item in scored[:40]] if scored else list(moves.values())[:40]
+    selected = [(item[2], item[3]) for item in scored[:40]] if scored else [(move, zh_map.get(move.get("moveName", ""), {}).get("zh", "")) for move in list(moves.values())[:40]]
 
     stats = data[character].get("stats", {})
     lines = [
@@ -203,8 +219,8 @@ def lookup_frame_data(question: str, max_chars: int = 12000) -> str:
         "招式帧数：",
     ]
     current_chars = sum(len(line) for line in lines)
-    for move in selected:
-        line = _format_move(move.get("moveName", ""), move)
+    for move, zh_name in selected:
+        line = _format_move(move.get("moveName", ""), move, zh_name)
         if current_chars + len(line) > max_chars:
             break
         lines.append(line)
